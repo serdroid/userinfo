@@ -1,0 +1,16 @@
+.nb-gradle*
+.gradle
+gradle
+gradlew*
+.metadata
+RemoteSystemsTempFiles
+build
+nbproject
+private
+.classpath
+.gradle/
+.project
+.settings/
+bin/
+lib/
+userinfo.txt

@@ -1,0 +1,19 @@
+create table USERINFO (
+userid varchar(20) not null,
+password varchar(40),
+watchword varchar(40),
+name varchar(50),
+lastname varchar(50),
+personid varchar(11),
+accountid varchar(10),
+usertype int4,
+accountstate int4,
+lastupdated varchar(14),
+partitionid int4,
+primary key (userid)
+);
+
+grant select on table userinfo to serdars;
+grant update,insert,delete on table userinfo to serdars;
+
+\copy userinfo from '/path/to/project/userinfo.txt' with delimiter '#"
