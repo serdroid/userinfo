@@ -7,9 +7,22 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Locale;
 
+import org.apache.ignite.Ignite;
+
+import info.serdroid.userinfo.grid.model.UserInfo;
+
 public class UserInfoGenerator {
 
+	private transient Ignite ignite;
+
+	void setupIgniteConfiguration() {
+		ignite = new IgniteBuilder().buildIgnite(true);
+	}
+
+
 	void generateFile() throws IOException {
+		setupIgniteConfiguration();
+		System.out.println("starting generate users");
 		long start = System.currentTimeMillis();
 		String passwd = "1234567890abcdef1234567890abcdef";
 		String seperator = "#";
@@ -21,11 +34,12 @@ public class UserInfoGenerator {
 		int innerLoop = totalUsers / partitionCount;
 		int partitionId = 0;
 		int userId = 0;
-		for (int jjx = 0; jjx < partitionCount; ++jjx) {
-			for (int idx = 0; idx < innerLoop; ++idx) {
+		String userIdStr;
+		for (int jjx = 0; jjx < totalUsers; ++jjx) {
 				String pin = pinGenerator.generateString();
 				++userId;
-				writer.write(String.format(Locale.US, "%08d", userId)); // userid
+				userIdStr = String.format(Locale.US, "%08d", userId);
+				writer.write(userIdStr); // userid
 				writer.write(seperator);
 				writer.write(passwd); // passwd
 				writer.write(seperator);
@@ -45,10 +59,9 @@ public class UserInfoGenerator {
 				writer.write(seperator);
 				writer.write("20180305145100"); // last updated
 				writer.write(seperator);
+				partitionId = ignite.affinity(UserInfo.class.getName()).partition(userIdStr);
 				writer.write(String.valueOf(partitionId)); // partition id
 				writer.write("\n");
-			}
-			++partitionId;
 		}
 		writer.close();
 		long stop = System.currentTimeMillis();
