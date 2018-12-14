@@ -6,7 +6,9 @@ import javax.persistence.EntityTransaction;
 
 import org.apache.ignite.cache.store.CacheStoreSession;
 import org.apache.ignite.cache.store.CacheStoreSessionListener;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CacheJpaStoreSessionListener implements CacheStoreSessionListener {
 
 	private EntityManagerFactory entityManagerFactory;

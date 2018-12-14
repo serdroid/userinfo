@@ -14,34 +14,27 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 
 public class IgniteBuilder {
-	private EntityManagerFactory entityManagerFactory;
+//	private EntityManagerFactory entityManagerFactory;
 
 	public IgniteBuilder() {
-		entityManagerFactory = Persistence.createEntityManagerFactory("userds");
+//		entityManagerFactory = Persistence.createEntityManagerFactory("userds");
 	}
 	
     public Ignite buildIgnite(boolean clientMode) {
     	Ignite ignite;
-        TcpDiscoverySpi spi = new TcpDiscoverySpi();
-        TcpDiscoveryMulticastIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
-        ipFinder.setMulticastGroup("228.10.10.157");
-        spi.setIpFinder(ipFinder);
+    	Ignition.setClientMode(clientMode);
+    	String cacheConfigFile = "uinfo-cache.xml";
         IgniteConfiguration cfg = new IgniteConfiguration();
-        // Override default discovery SPI.
-        cfg.setDiscoverySpi(spi);
-        cfg.setPeerClassLoadingEnabled(true);
-        cfg.setClientMode(clientMode);
-        
+        /*
         DataStorageConfiguration dscfg = new DataStorageConfiguration();
         DataRegionConfiguration drcfg = new DataRegionConfiguration();
         drcfg.setName("ssdefault");
         long GB = 1024 * 1024 * 1024;
         drcfg.setInitialSize(1 * GB);
-        drcfg.setMaxSize(8 * GB);
+        drcfg.setMaxSize(4 * GB);
         drcfg.setMetricsEnabled(true);
         dscfg.setDefaultDataRegionConfiguration(drcfg);
         cfg.setDataStorageConfiguration(dscfg);
-        
         cfg.setCacheStoreSessionListenerFactories(new Factory<CacheStoreSessionListener>() {
             @Override
             public CacheStoreSessionListener create() {
@@ -50,6 +43,8 @@ public class IgniteBuilder {
         });
         // Start Ignite node.
         ignite = Ignition.start(cfg);
+        */
+        ignite = Ignition.start(cacheConfigFile);
         return ignite;
     }
 
