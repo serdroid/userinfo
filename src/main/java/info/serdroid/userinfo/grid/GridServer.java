@@ -9,16 +9,17 @@ import javax.cache.configuration.FactoryBuilder;
 
 import org.apache.ignite.DataRegionMetrics;
 import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction;
 import org.apache.ignite.configuration.CacheConfiguration;
 
+import info.serdroid.userinfo.grid.model.SubjectKey;
 import info.serdroid.userinfo.grid.model.UserInfo;
 
 public class GridServer implements Serializable {
-
-    private transient Ignite ignite;
+	private static final long serialVersionUID = 846515891166302712L;
+	
+	private transient Ignite ignite;
 	GridConfiguration gridConfiguration;
 	
 	public GridServer(GridConfiguration config) {
@@ -41,10 +42,22 @@ public class GridServer implements Serializable {
     }
 
     void setupCacheConfiguration() {
+    	setupUserCache();
+    	setupSubjectKeyCache();
+    }
+
+    private void setupUserCache() {
         CacheConfiguration<String, UserInfo> cacheCfg = new CacheConfiguration<>(UserInfo.class.getName());
         configureCache(cacheCfg, UserInfoStore.class);
-        IgniteCache<String, UserInfo> cache = ignite.getOrCreateCache(cacheCfg);
+        ignite.getOrCreateCache(cacheCfg);
     }
+
+    private void setupSubjectKeyCache() {
+    	CacheConfiguration<String, SubjectKey> cacheCfg = new CacheConfiguration<>(SubjectKey.class.getName());
+        configureCache(cacheCfg, SubjectKeyStore.class);
+        ignite.getOrCreateCache(cacheCfg);
+    }
+    
     
     void readDataMetrics() {
 		// Get the metrics of all the data regions configured on a node.
