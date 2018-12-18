@@ -53,7 +53,7 @@ public class GridServer implements Serializable {
     }
 
     private void setupSubjectKeyCache() {
-    	CacheConfiguration<String, SubjectKey> cacheCfg = new CacheConfiguration<>(SubjectKey.class.getName());
+    	CacheConfiguration<Integer, SubjectKey> cacheCfg = new CacheConfiguration<>(SubjectKey.class.getName());
         configureCache(cacheCfg, SubjectKeyStore.class);
         ignite.getOrCreateCache(cacheCfg);
     }

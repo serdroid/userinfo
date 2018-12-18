@@ -82,33 +82,6 @@ public class GridLoader implements Serializable {
 		System.out.println(">>> Get " + userSet.size() + " keys in " + (end - start) + "ms.");
 	}
 
-	void getSubjectKeys(Ignite igniteArg) {
-		IgniteCache<String, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
-		HashSet<String> userSet = new HashSet<>();
-		long start = System.currentTimeMillis();
-		IgniteCompute compute = igniteArg.compute(igniteArg.cluster().forDataNodes(SubjectKey.class.getName()));
-		Collection<List<String>> users = compute.broadcast(() -> {
-			ClusterNode localNode = igniteArg.cluster().localNode();
-			List<String> allUsers = new ArrayList<>();
-			int[] parts = igniteArg.affinity(SubjectKey.class.getName()).primaryPartitions(localNode);
-			for (int part : parts) {
-				ScanQuery<String, SubjectKey> sq = new ScanQuery<String, SubjectKey>().setFilter((k, v) -> true)
-						.setLocal(true).setPartition(part);
-				subjectCache.query(sq).getAll().stream().forEach(entry -> {
-					allUsers.add(entry.getKey());
-				});
-			}
-			return allUsers;
-		});
-		for (List<String> userPart : users) {
-			userPart.stream().forEach(user -> {
-				userSet.add(user);
-			});
-		}
-		long end = System.currentTimeMillis();
-		System.out.println(">>> Get " + userSet.size() + " keys in " + (end - start) + "ms.");
-	}
-	
 	void examinePartitions(Ignite igniteArg) {
 		IgniteCompute compute = igniteArg.compute(igniteArg.cluster().forDataNodes(UserInfo.class.getName()));
 		Collection<String> users = compute.broadcast(() -> {
@@ -168,7 +141,7 @@ public class GridLoader implements Serializable {
 			loadCache();
 		}
 		if(keys) {
-			getSubjectKeys(ignite);
+			getUserKeys(ignite);
 		}
 	}
 

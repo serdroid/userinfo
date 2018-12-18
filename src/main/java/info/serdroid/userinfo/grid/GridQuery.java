@@ -16,36 +16,37 @@ import info.serdroid.userinfo.grid.model.SubjectKey;
 
 public class GridQuery {
 	private transient Ignite ignite;
-	String[] queryKeys = new String[] {"00000001", "00000002"};
+	Integer[] queryKeys = new Integer[] {10001, 10002};
 
 	void setupIgniteConfiguration() {
 		ignite = new IgniteBuilder().buildIgnite(true);
 	}
 
 	void query() {
-//		Arrays.asList(queryKeys).stream().forEach(System.out::println);
-//		getSubject(ignite, "00000001");
+		Arrays.asList(queryKeys).stream().forEach(item -> {
+			getSubject(ignite, item);
+		});
 //		getSubjectKeys(ignite);
-		getSubject(ignite, "00000007");
+//		getSubject(ignite, 10007);
 	}
 	
-	private void getSubject(Ignite igniteArg, String key) {
-		IgniteCache<String, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
+	private void getSubject(Ignite igniteArg, Integer key) {
+		IgniteCache<Integer, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
 		SubjectKey subject = subjectCache.get(key);
 		System.out.println("subject = " + subject);
 	}
 
 	void getSubjectKeys(Ignite igniteArg) {
-		IgniteCache<String, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
-		HashSet<String> userSet = new HashSet<>();
+		IgniteCache<Integer, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
+		HashSet<Integer> userSet = new HashSet<>();
 		long start = System.currentTimeMillis();
 		IgniteCompute compute = igniteArg.compute(igniteArg.cluster().forDataNodes(SubjectKey.class.getName()));
-		Collection<List<String>> users = compute.broadcast(() -> {
+		Collection<List<Integer>> users = compute.broadcast(() -> {
 			ClusterNode localNode = igniteArg.cluster().localNode();
-			List<String> allUsers = new ArrayList<>();
+			List<Integer> allUsers = new ArrayList<>();
 			int[] parts = igniteArg.affinity(SubjectKey.class.getName()).primaryPartitions(localNode);
 			for (int part : parts) {
-				ScanQuery<String, SubjectKey> sq = new ScanQuery<String, SubjectKey>().setFilter((k, v) -> true)
+				ScanQuery<Integer, SubjectKey> sq = new ScanQuery<Integer, SubjectKey>().setFilter((k, v) -> true)
 						.setLocal(true).setPartition(part);
 				subjectCache.query(sq).getAll().stream().forEach(entry -> {
 					allUsers.add(entry.getKey());
@@ -53,7 +54,7 @@ public class GridQuery {
 			}
 			return allUsers;
 		});
-		for (List<String> userPart : users) {
+		for (List<Integer> userPart : users) {
 			userPart.stream().forEach(user -> {
 				userSet.add(user);
 			});

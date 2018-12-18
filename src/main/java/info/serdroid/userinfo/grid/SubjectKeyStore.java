@@ -23,7 +23,7 @@ import org.apache.ignite.resources.IgniteInstanceResource;
 
 import info.serdroid.userinfo.grid.model.SubjectKey;
 
-public class SubjectKeyStore extends CacheStoreAdapter<String, SubjectKey> {
+public class SubjectKeyStore extends CacheStoreAdapter<Integer, SubjectKey> {
 
 	// Will be automatically injected.
 	@IgniteInstanceResource
@@ -35,14 +35,14 @@ public class SubjectKeyStore extends CacheStoreAdapter<String, SubjectKey> {
 	private CacheStoreSession session;
 
 	@Override
-	public SubjectKey load(String key) throws CacheLoaderException {
+	public SubjectKey load(Integer key) throws CacheLoaderException {
 		EntityManager entityManager = session.attachment();
 		SubjectKey uInfo = entityManager.find(SubjectKey.class, key);
 		return uInfo;
 	}
 
 	@Override
-	public void write(Entry<? extends String, ? extends SubjectKey> entry) throws CacheWriterException {
+	public void write(Entry<? extends Integer, ? extends SubjectKey> entry) throws CacheWriterException {
 		EntityManager entityManager = session.attachment();
 		entityManager.persist(entry.getValue());
 	}
@@ -50,17 +50,17 @@ public class SubjectKeyStore extends CacheStoreAdapter<String, SubjectKey> {
 	@Override
 	public void delete(Object key) throws CacheWriterException {
 		EntityManager entityManager = session.attachment();
-		Query dQuery = entityManager.createQuery("delete from SubjectKey o where o.sId = '" + key + "'");
+		Query dQuery = entityManager.createQuery("delete from SubjectKey o where o.sId = " + key );
 		dQuery.executeUpdate();
 	}
 	
 	@Override
-	public void loadCache(IgniteBiInClosure<String, SubjectKey> clo, Object... args) {
+	public void loadCache(IgniteBiInClosure<Integer, SubjectKey> clo, Object... args) {
 		loadPartition(clo, 0);
 	}
 
 //	@Override
-	public void loadCache2(IgniteBiInClosure<String, SubjectKey> clo, Object... args) {
+	public void loadCache2(IgniteBiInClosure<Integer, SubjectKey> clo, Object... args) {
 		Affinity<SubjectKey> affinity = ignite.affinity(SubjectKey.class.getName());
 	    ClusterNode localNode = ignite.cluster().localNode();
     	System.out.println("primary partitions for " + localNode.id());
@@ -82,7 +82,7 @@ public class SubjectKeyStore extends CacheStoreAdapter<String, SubjectKey> {
     	System.out.println();
 	}
 
-	private int loadPartition(IgniteBiInClosure<String, SubjectKey> clo, int part) {
+	private int loadPartition(IgniteBiInClosure<Integer, SubjectKey> clo, int part) {
 		EntityManager entityManager = session.attachment();
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
     	
@@ -92,7 +92,7 @@ public class SubjectKeyStore extends CacheStoreAdapter<String, SubjectKey> {
     	TypedQuery<SubjectKey> query = entityManager.createQuery(criteriaQuery);
     	List<SubjectKey> subjectList = query.getResultList();
     	subjectList.forEach(item -> {
-    		clo.apply(item.getSKey(), item);
+    		clo.apply(item.getSId(), item);
 //			System.out.printf(">>> Loaded %s into subject cache\n", item.toString());
     	});
 		return subjectList.size();

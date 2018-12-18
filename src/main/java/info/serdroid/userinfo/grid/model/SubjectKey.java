@@ -7,9 +7,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name="SUBJECTKEY")
 public class SubjectKey {
+	@Id
 	private int sId;
 	private short sTypeId;
-	@Id
 	private String sKey;
 
 	public SubjectKey() {}
