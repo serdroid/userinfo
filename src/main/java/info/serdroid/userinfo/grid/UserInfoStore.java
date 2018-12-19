@@ -7,6 +7,7 @@ import javax.cache.integration.CacheLoaderException;
 import javax.cache.integration.CacheWriterException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.cache.affinity.Affinity;
@@ -16,10 +17,13 @@ import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.lang.IgniteBiInClosure;
 import org.apache.ignite.resources.CacheStoreSessionResource;
 import org.apache.ignite.resources.IgniteInstanceResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import info.serdroid.userinfo.grid.model.UserInfo;
 
 public class UserInfoStore extends CacheStoreAdapter<String, UserInfo> {
+	private static final Logger logger = LoggerFactory.getLogger(UserInfoStore.class);
 
 	// Will be automatically injected.
 	@IgniteInstanceResource
@@ -54,30 +58,27 @@ public class UserInfoStore extends CacheStoreAdapter<String, UserInfo> {
 	public void loadCache(IgniteBiInClosure<String, UserInfo> clo, Object... args) {
 		Affinity<UserInfo> affinity = ignite.affinity(UserInfo.class.getName());
 	    ClusterNode localNode = ignite.cluster().localNode();
-    	System.out.println("primary partitions for " + localNode.id());
+    	logger.debug("primary partitions for {}", localNode.id());
 	    int[] partitions = affinity.primaryPartitions(localNode);
 	    for( int part : partitions) {
 	    	System.out.print( part + " ");
 			int cnt = loadPartition(clo, part);
-			System.out.printf(">>> Loaded %d values into cache, for primary partition %d \n", cnt, part);
+	    	logger.debug(">>> Loaded {} values into cache, for primary partition {}", cnt, part);
 	    }
-    	System.out.println();
-
-    	System.out.println("backup partitions for " + localNode.id());
+    	logger.debug("\nbackup partitions for {}", localNode.id());
 	    partitions = affinity.backupPartitions(localNode);
 	    for( int part : partitions) {
 	    	System.out.print( part + " ");
 			int cnt = loadPartition(clo, part);
-			System.out.printf(">>> Loaded %d values into cache, for backup partition %d \n", cnt, part);
+	    	logger.debug(">>> Loaded {} values into cache, for backup partition {}", cnt, part);
 	    }
-    	System.out.println();
 	}
 
 	private int loadPartition(IgniteBiInClosure<String, UserInfo> clo, int part) {
 		EntityManager entityManager = session.attachment();
 
 		String jpqlStr = "select u from UserInfo u where u.partitionid = :partId";
-		Query query = entityManager.createQuery(jpqlStr);
+		TypedQuery<UserInfo> query = entityManager.createQuery(jpqlStr, UserInfo.class);
 		query.setParameter("partId", part);
 		List<UserInfo> userList = query.getResultList();
 

@@ -15,12 +15,15 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteCompute;
 import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.cluster.ClusterNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import info.serdroid.userinfo.grid.model.SubjectKey;
 import info.serdroid.userinfo.grid.model.UserInfo;
 
 public class GridLoader implements Serializable {
 	private static final long serialVersionUID = 3164382224117633827L;
+	private static final Logger logger = LoggerFactory.getLogger(GridLoader.class);
 	
 	private transient Ignite ignite;
 
@@ -52,7 +55,7 @@ public class GridLoader implements Serializable {
 			});
 		}
 		long end = System.currentTimeMillis();
-		System.out.println(">>> Loaded " + userMap.size() + " users in " + (end - start) + "ms.");
+		logger.info(">>> Loaded {} users in {} ms.", userMap.size(), (end - start));
 	}
 
 	void getUserKeys(Ignite igniteArg) {
@@ -125,12 +128,12 @@ public class GridLoader implements Serializable {
 		long start = System.currentTimeMillis();
 
 		// Start loading cache from persistent store on all caching nodes.
-		System.out.println("Start loading cache from persistent store on all caching nodes.");
+		logger.info("Start loading cache from persistent store on all caching nodes.");
 		cache.loadCache(null);
 
 		long end = System.currentTimeMillis();
 
-		System.out.println(">>> Loaded " + cache.size() + " keys with backups in " + (end - start) + "ms.");
+		logger.info(">>> Loaded {} keys with backups in {} ms.", cache.size(), (end - start) );
 	}
 
 	void run() {

@@ -6,6 +6,8 @@ plugins {
 group = 'info.serdroid.userinfo'
 
 dependencies {
+	implementation group: 'org.slf4j', name: 'slf4j-api', version:'1.7.25'
+	implementation group: 'ch.qos.logback', name: 'logback-classic', version:'1.2.3'
     implementation group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.1-api', version: '1.0.2.Final'
     implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.0.Final'
     implementation group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
