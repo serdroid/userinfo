@@ -6,15 +6,21 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.cache.Cache.Entry;
+
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.IgniteCompute;
+import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.ScanQuery;
 import org.apache.ignite.cluster.ClusterNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import info.serdroid.userinfo.grid.model.SubjectKey;
 
 public class GridQuery {
+	private static final Logger logger = LoggerFactory.getLogger(GridQuery.class);
 	private transient Ignite ignite;
 	Integer[] queryKeys = new Integer[] {10001, 10002};
 
@@ -28,6 +34,7 @@ public class GridQuery {
 		});
 //		getSubjectKeys(ignite);
 //		getSubject(ignite, 10007);
+		getSubjectByKey(ignite, "00000007");
 	}
 	
 	private void getSubject(Ignite igniteArg, Integer key) {
@@ -62,6 +69,21 @@ public class GridQuery {
 		long end = System.currentTimeMillis();
 		System.out.println(">>> Get " + userSet.size() + " keys in " + (end - start) + "ms.");
 	}
+	
+	void getSubjectByKey(Ignite igniteArg, String subKey) {
+		IgniteCache<Integer, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
+		ArrayList<SubjectKey> allUsers = new ArrayList<>();
+		try (QueryCursor<Entry<Integer, SubjectKey>> cursor = subjectCache.query(new ScanQuery<Integer, SubjectKey>(
+				(k, v) -> v.getSKey().equals(subKey))) 
+			) {
+				cursor.forEach(item -> {
+					allUsers.add( item.getValue() );
+				});
+			}
+		allUsers.forEach(System.out::println);
+	}
+
+	
 	
 	void run() {
 		setupIgniteConfiguration();
