@@ -142,4 +142,10 @@ public class UserInfo implements Serializable {
 		this.partitionid = partitionid;
 	}
 
+	@Override
+	public String toString() {
+		return "UserInfo [userid=" + userid + ", name=" + name + ", lastname=" + lastname + ", personid=" + personid
+				+ ", accountid=" + accountid + "]";
+	}
+
 }

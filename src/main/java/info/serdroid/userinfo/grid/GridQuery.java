@@ -18,27 +18,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import info.serdroid.userinfo.grid.model.SubjectKey;
+import info.serdroid.userinfo.grid.model.UserInfo;
 
 public class GridQuery {
 	private static final Logger logger = LoggerFactory.getLogger(GridQuery.class);
 	private transient Ignite ignite;
-	Integer[] queryKeys = new Integer[] {10001, 10002};
+	private static final List<Integer> queryKeys = Arrays.asList(10001, 10002);
+	private static final List<String> pids = Arrays.asList(
+			"01124830090",
+			"69480164950",
+			"98456859930",
+			"90235362340",
+			"17734668770",
+			"61007170840",
+			"85135223600",
+			"92248163810",
+			"74601317270",
+			"45527008630",
+			"34921721100",
+			"28426180010",
+			"73323978790"			
+	);
+	
 
 	void setupIgniteConfiguration() {
 		ignite = new IgniteBuilder().buildIgnite(true);
 	}
 
 	void query() {
-		Arrays.asList(queryKeys).stream().forEach(item -> {
-			getSubject(ignite, item);
-		});
-//		getSubjectKeys(ignite);
-//		getSubject(ignite, 10007);
-		getSubjectByKey(ignite, "00000007");
+		queryKeys.forEach(this::getSubject);
+//		getSubjectByKey("00000007");
+		pids.forEach(this::getUserByPersonId);
 	}
 	
-	private void getSubject(Ignite igniteArg, Integer key) {
-		IgniteCache<Integer, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
+	private void getSubject(Integer key) {
+		IgniteCache<Integer, SubjectKey> subjectCache = ignite.cache(SubjectKey.class.getName());
 		SubjectKey subject = subjectCache.get(key);
 		System.out.println("subject = " + subject);
 	}
@@ -70,8 +84,8 @@ public class GridQuery {
 		System.out.println(">>> Get " + userSet.size() + " keys in " + (end - start) + "ms.");
 	}
 	
-	void getSubjectByKey(Ignite igniteArg, String subKey) {
-		IgniteCache<Integer, SubjectKey> subjectCache = igniteArg.cache(SubjectKey.class.getName());
+	void getSubjectByKey(String subKey) {
+		IgniteCache<Integer, SubjectKey> subjectCache = ignite.cache(SubjectKey.class.getName());
 		ArrayList<SubjectKey> allUsers = new ArrayList<>();
 		try (QueryCursor<Entry<Integer, SubjectKey>> cursor = subjectCache.query(new ScanQuery<Integer, SubjectKey>(
 				(k, v) -> v.getSKey().equals(subKey))) 
@@ -82,9 +96,19 @@ public class GridQuery {
 			}
 		allUsers.forEach(System.out::println);
 	}
+	
+	void getUserByPersonId(String personId) {
+		IgniteCache<String, UserInfo> userCache = ignite.cache(UserInfo.class.getName());
+		ArrayList<UserInfo> allUsers = new ArrayList<>();
+		ScanQuery<String, UserInfo> userScanQ = new ScanQuery<String, UserInfo>((k, v) -> v.getPersonid().equals(personId));
+		try (QueryCursor<Entry<String, UserInfo>> cursor = userCache.query(userScanQ) ) {
+				cursor.forEach(item -> {
+					allUsers.add( item.getValue() );
+				});
+			}
+		allUsers.forEach(System.out::println);
+	}
 
-	
-	
 	void run() {
 		setupIgniteConfiguration();
 		query();
